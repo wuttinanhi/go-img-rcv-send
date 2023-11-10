@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,13 +11,23 @@ func main() {
 	// Create a new Gin router
 	router := gin.Default()
 
+	router.GET("/", func(c *gin.Context) {
+		c.File("./static/index.html")
+	})
+
 	// Define a route to serve the image at /recv
 	router.GET("/recv", func(c *gin.Context) {
+		// if no image, return 404
+		if _, err := os.Stat("./out.jpg"); os.IsNotExist(err) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+
 		// Set the content type header to image/jpeg
 		c.Header("Content-Type", "image/jpeg")
 
 		// Serve the image file
-		c.File("./test.jpg")
+		c.File("./out.jpg")
 	})
 
 	router.POST("/send", func(c *gin.Context) {
